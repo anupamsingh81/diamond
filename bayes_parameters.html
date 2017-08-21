@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Bayesian Inference For Clinical Trials </title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<script src="site_libs/jstat.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Anupam Singh</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="about.html">
+    <span class="fa fa-user"></span>
+     
+    About
+  </a>
+</li>
+<li>
+  <a href="https://anupamsingh81.github.io/blog/">
+    <span class="fa fa-rss"></span>
+     
+    Blog
+  </a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-bars"></span>
+     
+    Miscellaneous
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="https://www.researchgate.net/profile/Anupam_Singh9">My Research gate profile</a>
+    </li>
+    <li>
+      <a href="https://www.researchgate.net/publication/289519661_Comparison_of_ICH_score_and_other_Machine_algorithms_for_prediction_of_mortality_in_Intracranial_hemorrhage">Machine learning in prediction of outcome in intracranial hemorrhage</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="mailto:anupampom@gmail.com">
+    <span class="fa fa-envelope-o"></span>
+     
+    Contact me
+  </a>
+</li>
+<li>
+  <a href="https://github.com/anupamsingh81">
+    <span class="fa fa-github"></span>
+     
+    GitHub
+  </a>
+</li>
+<li>
+  <a href="https://twitter.com/anupampom">
+    <span class="fa fa-twitter"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="http://stackoverflow.com/users/4954115/anupam?tab=profile">
+    <span class="fa fa-stack-overflow"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore" style="color:blue">Bayesian Inference for Clinical Trials and A/B Tests</h1>
+<br>
+<br>
+
+</div>
+
+ <p>Enter location(mean) of study effect: <input ="text" placeholder="0"  id="xe"></p>
+ 
+ <p> Enter scale(sd) of study effect: <input ="text" placeholder="0.2"  id="sde"></p>
+
+
+<p> Enter control event rate: <input ="text" placeholder="0.2"  id="p"></p>
+
+ <p>Enter location(mean) of custom prior: <input ="text" placeholder="0"  id="x1"></p>
+ 
+ <p> Enter scale(sd) of custom prior: <input ="text" placeholder="0.2"  id="sd1"></p>
+ 
+ <p>Enter Minimum clinically important difference(expected risk reduction in percent) <input ="text" placeholder="15"  id="mcid"></p>
+<p>Enter Threshold of difference <input ="text" placeholder="12"  id="del"></p>
+ <p>Enter upper limit of Range of practical equivalence(ROPE): <input ="text" placeholder="2.5"  id="rope1"></p>
+ <p>Enter lower limit of Range of practical equivalence(ROPE): <input ="text" placeholder="-2.5"  id="rope2"></p>
+ 
+ 
+	<input type="button" value="Calculate Bayesian Interpretation" id = "calc">
+	<input type="button" value="reset" id="reset"  >
+
+
+    
+	<p> Important References : <a href="https://www.ncbi.nlm.nih.gov/pubmed/15172393"> Diamond and Kaul 2004 </a> ,<a href ="https://www.ncbi.nlm.nih.gov/pubmed/19667308">Diamond and Kaul 2009 </a>, <a href="https://www.ncbi.nlm.nih.gov/pubmed/26668090"> Pedroza2015 </a>,<a href="https://projecteuclid.org/euclid.ss/1089808280" > Spieghalter </a></p>
+ 
+	<p><b>Bayesian Interpretation</b></p>
+<textarea id="log" style= "width: 100%; height: 250px;" ></textarea>
+
+</div>
+
+<script>
+$(document).ready(function(){ 
+function write_log(s) {
+       $("#log").val($("#log").val() + s)
+      $("#log").scrollTop($("#log")[0].scrollHeight);
+    }
+	
+$(".reset").bind("click", function() {
+  $("input[type=text], textarea").val("");
+});
+
+
+$("#reset").on("click", function(){
+$('#xe').val('');
+$('#sde').val('');
+$('#p').val('');
+
+$('#mcid').val('');
+$('#del').val('');
+$('#rope1').val('');
+$('#rope2').val('');
+$('#x1').val('');
+$('#sd1').val('');
+
+
+$('#log').val('');
+
+})
+
+//function computelog() {
+
+$("#calc").on("click", function(){
+
+var summary = '';
+var msg = '';
+var gap = '';
+var logic = '';
+
+write_log("\n") ;
+
+
+	write_log('Bayesian interpretation of clinical trial coded by Anupam K Singh, MD '+"\n") ;
+write_log("\n") ;
+
+    var xe = parseFloat($('#xe').val());
+	var sde = parseFloat($('#sde').val());
+	var p = parseFloat($('#p').val());
+    
+
+    var del = parseFloat($('#del').val());
+    var rope1 = parseFloat($('#rope1').val());
+    var rope2 = parseFloat($('#rope2').val());
+    var mcid = parseFloat($('#mcid').val());
+    
+    var x1 = parseFloat($('#x1').val());
+    var sd1 = parseFloat($('#sd1').val());
+    
+    
+    
+	
+
+//p
+
+
+
+
+
+//var xpr = 0
+
+//var sdpr = 0.35
+
+
+
+
+var mcirr = 1- mcid/100
+
+var mcidor = Math.log((1 - p ) * mcirr /(1 - p*mcirr))
+
+var mcidorse = mcidor/1.96
+
+
+
+var t = Math.abs(xe/sde)
+
+  //  var p = jStat.ttest(t, (a1+b1+c1+d1)- 2 +1)
+
+
+//var xe = -0.12
+//var sde = 0.06
+
+// priors (0,0.4) skeptical prior on log scale meaning , mean odds ratio is 1 , and range is exp(-0.8) 44% reduction to exp(0.8) ie increase to 2.2 times
+
+// prior can be changed to (0,0.35) so that 50% decrease and 2 times increase
+
+// Enthusiastic prior let us assume expected reduction to be 50% , hence mean of prior is Math.log(0.5) = -0.69 and sd is Math.abs(Math.log(0.5)/1.96) = // 0.35, thus minimum possible reduction is 0 
+
+
+
+function priortopost(xpr,sdpr,xe,sde,p,del,rope1,rope2) {
+
+
+
+
+var oneprobor = Math.log((1 - p ) * 0.9 /(1 - p*0.9))
+
+var twoprobor = Math.log((1 - p ) * 0.8 /(1 - p*0.8))
+
+var threeprobor = Math.log((1 - p ) * 0.7 /(1 - p*0.7))
+
+var delta = 1 - del/100
+
+var delor = Math.log((1 - p ) * delta /(1 - p*delta))
+
+var r1 = 1 - rope1/100
+
+var r1or = Math.log((1 - p ) * r1/(1 - p*r1))
+
+var r2 = 1 - rope2/100
+
+var r2or = Math.log((1 - p ) * r2/(1 - p*r2))
+
+
+var xpost = ( xpr/(sdpr*sdpr) + xe/(sde*sde) ) /( 1/(sdpr*sdpr) +  1/(sde*sde))
+    
+
+var sdpost = 1/Math.sqrt( 1/(sdpr*sdpr) +  1/(sde*sde))
+
+//var j = " The xpost is : " + xpost + "sdpost is" +sdpost+ "."
+//return j
+//}
+
+//xpost
+//sdpost
+var thresholdprob = jStat.normal.cdf(delor,xpost,sdpost)
+
+var oneprob =  jStat.normal.cdf(oneprobor,xpost,sdpost)
+
+var twoprob =  jStat.normal.cdf(twoprobor,xpost,sdpost)
+
+var threeprob =  jStat.normal.cdf(threeprobor,xpost,sdpost)
+
+var better = jStat.normal.cdf(0,xpost,sdpost)
+
+var Nullprob    =  Math.abs(jStat.normal.cdf(r1or,xpost,sdpost) -  jStat.normal.cdf(r2or,xpost,sdpost) )
+
+var orpost = Math.exp(xpost).toFixed(3)
+var orpostlo = Math.exp(xpost -1.96*sdpost).toFixed(3)
+var orposthi = Math.exp(xpost +1.96*sdpost).toFixed(3)
+
+var rrpost = orpost/((1-p) +p*orpost).toFixed(3)
+var rrpostlo = orpostlo/((1-p) +p*orpostlo).toFixed(3)
+var rrposthi = orposthi/((1-p) +p*orposthi).toFixed(3)
+
+var rdpost  = (100*p*(1-rrpost))
+var rdpostlo  = (100*p*(1-rrpostlo))
+var rdposthi  = (100*p*(1-rrposthi))
+
+
+
+
+
+
+
+
+var summary = "This prior assumes that in general clinical studies have  mean odds ratio of " + Math.exp(xpr).toFixed(3) + " with lower and higher 95% credible limits of odds ratio from " +  Math.exp(xpr -1.96*sdpr).toFixed(3) + " to " +  Math.exp(xpr+ 1.96*sdpr).toFixed(3) + " respectively  " 
+
+ var summary1 = ". Combining study results with this prior information .On log scale , mean and sd are " +xpost.toFixed(3)+" and  "+sdpost.toFixed(3)+ " respectively . The study has   mean odds ratio of " + Math.exp(xpost).toFixed(3) + " with lower and higher 95% credible limits of odds ratio from " +  Math.exp(xpost -1.96*sdpost).toFixed(3) + " to " +  Math.exp(xpost + 1.96*sdpost).toFixed(3) + " respectively  " 
+
+var summary2 =  ". The probability that treatment is better than control is  " + (better*100).toFixed(3) + " percent. The probability that treatment causes 10%,20% and 30% Risk reduction is " + (oneprob*100).toFixed(3) + ", " + (twoprob*100).toFixed(3) + ", "+ (threeprob*100).toFixed(3) + " percent respectively "
+
+
+var custom1 = " . The probability that treatment causes  specified " + del + " %  reduction is " + (thresholdprob*100).toFixed(3) + " percent "
+
+var custom2 = " .The probability that treatment effect lies between "+ rope1 + " and " +rope2 +" percent reduction is " +(Nullprob*100).toFixed(3)+ " percent"
+
+
+var  rr = ". The mean relative risk is " + rrpost.toFixed(3) + " The 95% credible interval for relative risk is from " +rrpostlo.toFixed(3)+ " to " +rrposthi.toFixed(3)+"."
+
+var  rd = ". The mean absolute risk difference  is " + rdpost.toFixed(3) + " percent .The 95% credible interval for absolute risk difference is from " +rdposthi.toFixed(3)+ " to " +rdpostlo.toFixed(3)+" percent."
+
+var sun = summary + summary1 + summary2 + custom1 + custom2 + rr + rd
+
+sun
+
+return sun
+
+}
+
+// important preserve function argument order in r
+
+
+var study = "In the Frequentist Interpretation,The odds ratio is " + (Math.exp(xe)).toFixed(3) + ".  The 95 % Confidence interval is " +Math.exp(xe-1.96*sde).toFixed(3)+ " to "+ Math.exp(xe+1.96*sde).toFixed(3)+ " . The t statistic is " + t.toFixed(3) + " . "
+
+
+
+var wip1 = "Let us do Bayesian sensitivity analysis by informative priors .In this bayesian analysis, we use conjugate priors albeit robust cauchy priors perform better with prior information and current experiment conflict. Coming to first weak informative prior . This prior has location of zero and scale of 1. It is recommended by Gelman and pedroza et al. for odds ratio in particular. " +  priortopost(xpr=0,sdpr=1,xe,sde,p,del,rope1,rope2)
+
+var wip2 = " Coming to second weak informative prior .It is a less vague version of first weakly informative prior with location of log odds ratio at 0 and scale at 0.35 recommended by spieghalter et al. " +  priortopost(xpr=0,sdpr=0.35,xe,sde,p,del,rope1,rope2)
+
+var cust = " Coming to custom prior . " +  priortopost(xpr=x1,sdpr=sd1,xe,sde,p,del,rope1,rope2)
+
+
+
+var enthusiasticprior = ". Now let us examine enthusiastic prior!  Enthusiastic prior is a highly informed prior representing clinician's belief which assumes a mean odds ratio of "+Math.exp(mcidor).toFixed(3)+" corresponding to " + mcid + " percent risk reduction(equivalent to prespecified  clinically signifiant risk reduction) and minimal(2.5%) chance of zero effect corresponding to odds ratio  1 ." +  priortopost(xpr=mcidor,sdpr=mcidorse,xe,sde,p,del,rope1,rope2)
+
+
+
+var skepticalprior = " Coming to skeptical prior,Skeptical prior assumes a mean odds ratio of "+Math.exp(0)+" corresponding to no risk reduction with minimal(2.5%) chance  of risk reduction exceeding " +mcid+ " percent(minimal prespecified clinically significant risk reduction.This may be thought as belief of a skeptical regulator. "+  priortopost(xpr=0,sdpr=mcidorse,xe,sde,p,del,rope1,rope2)
+
+
+var finalsummary = study+wip1+wip2+cust+enthusiasticprior+skepticalprior
+
+
+function priortopostcomp(xpr,sdpr,xe,sde) {
+
+
+
+
+
+
+
+var xpost = ( xpr/(sdpr*sdpr) + xe/(sde*sde) ) /( 1/(sdpr*sdpr) +  1/(sde*sde))
+    
+
+var sdpost = 1/Math.sqrt( 1/(sdpr*sdpr) +  1/(sde*sde))
+
+//var j = " The xpost is : " + xpost + "sdpost is" +sdpost+ "."
+//return j
+//}
+
+//xpost
+//sdpost
+
+
+var better = jStat.normal.cdf(0,xpost,sdpost)
+
+
+
+return better
+
+}
+
+
+
+var probenthus = priortopostcomp(xpr=mcidor,sdpr=mcidorse,xe,sde)
+                                 
+                                 var probskept = priortopostcomp(xpr=0,sdpr=mcidorse,xe,sde)
+ 
+                                 
+    probenthus                             
+                                 
+      probskept                           
+
+      
+      function conclude(probenethus,probskept){
+      
+      
+      var conclusion = ""
+      
+      if (probenthus > 0.95 && probskept > 0.95 ) 
+      {
+        var conclusion = " Recommendation(Diamond and Kaul): Evidence beyond a reasonable doubt since evidence in both skeptical and enthusiastic prior greater than 95 percent " 
+      }
+ 
+ if  (probenthus > 0.95 && probskept < 0.95 && probskept > 0.50 ) // added two clause to clarify
+{
+ var  conclusion = " Recommendation(Diamond and Kaul) : Clear and convincing evidence since evidence in enthusiastic prior greater than 95 percent while evidence in skeptical prior less than 95 but more than 50 percent" 
+ 
+  
+}
+
+ if  (probenthus < 0.95 && probskept > 0.50 ) 
+{
+  var conclusion = "Recommendation(Diamond and Kaul) : Preponderance of  evidence since evidence in both enthusiastic and skeptical prior less than 95 percent and more than 50 % " }
+
+ if  (probenthus >0.50 && probskept < 0.50 ) 
+{
+  var conclusion = " Recommendation(Diamond and Kaul) : Reasonable suspicion since evidence in  enthusiastic prior higher than 50 percent and skeptical prior less than 50 % " }
+
+        if  (probenthus < 0.50 && probskept < 0.50 ) 
+ 
+{
+  var conclusion = " Recommendation(Diamond and Kaul) : Insufficient evidence since evidence in both enthusiastic and skeptical prior less than 50 % " }
+
+
+   return conclusion     
+        
+      }
+
+
+
+
+
+var z = conclude(probenthus,probskept)
+
+write_log("\n")
+
+write_log(study)
+
+write_log("\n")
+write_log("\n")
+write_log("\n")
+
+
+write_log(wip1)
+
+write_log("\n")
+write_log("\n")
+
+write_log("\n")
+
+write_log(wip2)
+write_log("\n")
+write_log("\n")
+write_log(cust)
+write_log("\n")
+write_log("\n")
+
+
+write_log("\n")
+
+write_log(enthusiasticprior)
+write_log("\n")
+write_log("\n")
+
+write_log("\n")
+
+write_log(skepticalprior)
+
+write_log("\n")
+
+write_log("\n")
+
+write_log(z)
+
+
+
+
+
+
+
+
+
+//write_log("<b>"summary"</b>");
+//write_log(finalsummary);
+	})
+	})
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

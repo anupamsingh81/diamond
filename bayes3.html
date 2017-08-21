@@ -1,0 +1,384 @@
+<html>
+
+<head>
+<title> Bayesian interpration of clinical trial </title>
+
+<script src ="site_libs/jquery.min.js"> </script>
+<script src ="site_libs/jstat.js"> </script>
+
+</head>
+<body>
+
+<script>
+
+$(document).ready(function(){ 
+function write_log(s) {
+       $("#log").val($("#log").val() + s)
+      $("#log").scrollTop($("#log")[0].scrollHeight);
+    }
+	
+$(".reset").bind("click", function() {
+  $("input[type=text], textarea").val("");
+});
+
+
+$("#reset").on("click", function(){
+$('#a1').val('');
+$('#b1').val('');
+$('#c1').val('');
+$('#d1').val('');
+$('#mcid').val('');
+$('#del').val('');
+$('#rope1').val('');
+$('#rope2').val('');
+
+$('#log').val('');
+
+})
+
+//function computelog() {
+
+$("#calc").on("click", function(){
+
+var summary = '';
+var msg = '';
+var gap = '';
+var logic = '';
+
+write_log("\n") ;
+
+
+	write_log('Bayesian interpretation of clinical trial coded by Anupam K Singh, MD '+"\n") ;
+write_log("\n") ;
+
+    var a1 = parseFloat($('#a1').val());
+	var t1 = parseFloat($('#b1').val());
+	var c1 = parseFloat($('#c1').val());
+    var t2 = parseFloat($('#d1').val());
+
+    var del = parseFloat($('#del').val());
+    var rope1 = parseFloat($('#rope1').val());
+    var rope2 = parseFloat($('#rope2').val());
+    var mcid = parseFloat($('#mcid').val());
+	var p = c1/t2
+	
+	var b1 = t1-a1
+	var d1 = t2-c1
+
+//p
+
+var xe = Math.log((a1*d1)/(b1*c1))
+
+
+
+var sde = Math.sqrt(1/a1 + 1/b1 + 1/c1 + 1/d1)
+
+
+
+
+//var xpr = 0
+
+//var sdpr = 0.35
+
+
+
+
+var mcirr = 1- mcid/100
+
+var mcidor = Math.log((1 - p ) * mcirr /(1 - p*mcirr))
+
+var mcidorse = mcidor/1.96
+
+
+
+var t = Math.abs(xe/sde)
+
+    var p = jStat.ttest(t, (a1+b1+c1+d1)- 2 +1)
+
+
+//var xe = -0.12
+//var sde = 0.06
+
+// priors (0,0.4) skeptical prior on log scale meaning , mean odds ratio is 1 , and range is exp(-0.8) 44% reduction to exp(0.8) ie increase to 2.2 times
+
+// prior can be changed to (0,0.35) so that 50% decrease and 2 times increase
+
+// Enthusiastic prior let us assume expected reduction to be 50% , hence mean of prior is Math.log(0.5) = -0.69 and sd is Math.abs(Math.log(0.5)/1.96) = // 0.35, thus minimum possible reduction is 0 
+
+
+
+function priortopost(xpr,sdpr,xe,sde,p,del,rope1,rope2) {
+
+
+
+
+var oneprobor = Math.log((1 - p ) * 0.9 /(1 - p*0.9))
+
+var twoprobor = Math.log((1 - p ) * 0.8 /(1 - p*0.8))
+
+var threeprobor = Math.log((1 - p ) * 0.7 /(1 - p*0.7))
+
+var delta = 1 - del/100
+
+var delor = Math.log((1 - p ) * delta /(1 - p*delta))
+
+var r1 = 1 - rope1/100
+
+var r1or = Math.log((1 - p ) * r1/(1 - p*r1))
+
+var r2 = 1 - rope2/100
+
+var r2or = Math.log((1 - p ) * r2/(1 - p*r2))
+
+
+var xpost = ( xpr/(sdpr*sdpr) + xe/(sde*sde) ) /( 1/(sdpr*sdpr) +  1/(sde*sde))
+    
+
+var sdpost = 1/Math.sqrt( 1/(sdpr*sdpr) +  1/(sde*sde))
+
+//var j = " The xpost is : " + xpost + "sdpost is" +sdpost+ "."
+//return j
+//}
+
+//xpost
+//sdpost
+var thresholdprob = jStat.normal.cdf(delor,xpost,sdpost)
+
+var oneprob =  jStat.normal.cdf(oneprobor,xpost,sdpost)
+
+var twoprob =  jStat.normal.cdf(twoprobor,xpost,sdpost)
+
+var threeprob =  jStat.normal.cdf(threeprobor,xpost,sdpost)
+
+var better = jStat.normal.cdf(0,xpost,sdpost)
+
+var Nullprob    =  Math.abs(jStat.normal.cdf(r1or,xpost,sdpost) -  jStat.normal.cdf(r2or,xpost,sdpost) )
+
+var orpost = Math.exp(xpost).toFixed(3)
+var orpostlo = Math.exp(xpost -1.96*sdpost).toFixed(3)
+var orposthi = Math.exp(xpost +1.96*sdpost).toFixed(3)
+
+var rrpost = orpost/((1-p) +p*orpost).toFixed(3)
+var rrpostlo = orpostlo/((1-p) +p*orpostlo).toFixed(3)
+var rrposthi = orposthi/((1-p) +p*orposthi).toFixed(3)
+
+var rdpost  = (100000*p*(1-rrpost)).toFixed(3)
+var rdpostlo  = (100000*p*(1-rrpostlo)).toFixed(3)
+var rdposthi  = (100000*p*(1-rrposthi)).toFixed(3)
+
+
+
+
+
+
+
+
+var summary = "This prior assumes that in general clinical studies have  mean odds ratio of " + Math.exp(xpr).toFixed(3) + " with lower and higher 95% credible limits of odds ratio from " +  Math.exp(xpr -1.96*sdpr).toFixed(3) + " to " +  Math.exp(xpr+ 1.96*sdpr).toFixed(3) + " respectively  " 
+
+ var summary1 = ". Combining study results with this prior information . The study has   mean odds ratio of " + Math.exp(xpost).toFixed(3) + " with lower and higher 95% credible limits of odds ratio from " +  Math.exp(xpost -1.96*sdpost).toFixed(3) + " to " +  Math.exp(xpost + 1.96*sdpost).toFixed(3) + " respectively  " 
+
+var summary2 =  ". The probability that treatment is better than control is  " + (better*100).toFixed(3) + " percent. The probability that treatment causes 10%,20% and 30% Risk reduction is " + (oneprob*100).toFixed(3) + ", " + (twoprob*100).toFixed(3) + ", "+ (threeprob*100).toFixed(3) + " percent respectively "
+
+
+var custom1 = " . The probability that treatment causes  specified " + del + " %  reduction is " + (thresholdprob*100).toFixed(3) + " percent "
+
+var custom2 = " .The probability that treatment effect lies between "+ rope1 + " and " +rope2 +" percent reduction is " +(Nullprob*100).toFixed(3)+ " percent"
+
+
+var  rr = ". The mean relative risk is " + rrpost + " The 95% credible interval for relative risk is from " +rrpostlo+ " to " +rrposthi+"."
+
+var  rd = ". The mean absolute risk difference  is " + rdpost + " percent .The 95% credible interval for absolute risk difference is from " +rdposthi+ " to " +rdpostlo+" percent."
+
+var sun = summary + summary1 + summary2 + custom1 + custom2 + rr + rd
+
+sun
+
+return sun
+
+}
+
+// important preserve function argument order in r
+
+
+var study = "In the Frequentist Interpretation,The odds ratio is " + ((a1*d1)/(b1*c1)).toFixed(3) + ".  The 95 % Confidence interval is " +Math.exp(xe-1.96*sde).toFixed(3)+ " to "+ Math.exp(xe+1.96*sde).toFixed(3)+ " . The t statistic is " + t.toFixed(3) + " . The p value is " +p.toFixed(5)+ " ." 
+
+
+
+var wip1 = "Let us do Bayesian sensitivity analysis by informative priors .In this bayesian analysis, we use conjugate priors albeit robust cauchy priors perform better with prior information and current experiment conflict. Coming to first weak informative prior . This prior has location of zero and scale of 1. It is recommended by Gelman and pedroza et al. for odds ratio in particular. " +  priortopost(xpr=0,sdpr=1,xe,sde,p,del,rope1,rope2)
+
+var wip2 = " Coming to second weak informative prior .It is a less vague version of first weakly informative prior with location of log odds ratio at 0 and scale at 0.35 recommended by spieghalter et al. " +  priortopost(xpr=0,sdpr=0.35,xe,sde,p,del,rope1,rope2)
+
+
+var enthusiasticprior = ". Now let us examine enthusiastic prior!  Enthusiastic prior is a highly informed prior representing clinician's belief which assumes a mean odds ratio of "+Math.exp(mcidor).toFixed(3)+" corresponding to " + mcid + " percent risk reduction(equivalent to prespecified  clinically signifiant risk reduction) and minimal(2.5%) chance of zero effect corresponding to odds ratio  1 ." +  priortopost(xpr=mcidor,sdpr=mcidorse,xe,sde,p,del,rope1,rope2)
+
+
+
+var skepticalprior = " Coming to skeptical prior,Skeptical prior assumes a mean odds ratio of "+Math.exp(0)+" corresponding to no risk reduction with minimal(2.5%) chance  of risk reduction exceeding " +mcid+ " percent(minimal prespecified clinically significant risk reduction.This may be thought as belief of a skeptical regulator. "+  priortopost(xpr=0,sdpr=mcidorse,xe,sde,p,del,rope1,rope2)
+
+
+var finalsummary = study+wip1+wip2+enthusiasticprior+skepticalprior
+
+
+function priortopostcomp(xpr,sdpr,xe,sde) {
+
+
+
+
+
+
+
+var xpost = ( xpr/(sdpr*sdpr) + xe/(sde*sde) ) /( 1/(sdpr*sdpr) +  1/(sde*sde))
+    
+
+var sdpost = 1/Math.sqrt( 1/(sdpr*sdpr) +  1/(sde*sde))
+
+//var j = " The xpost is : " + xpost + "sdpost is" +sdpost+ "."
+//return j
+//}
+
+//xpost
+//sdpost
+
+
+var better = jStat.normal.cdf(0,xpost,sdpost)
+
+
+
+return better
+
+}
+
+
+
+var probenthus = priortopostcomp(xpr=mcidor,sdpr=mcidorse,xe,sde)
+                                 
+                                 var probskept = priortopostcomp(xpr=0,sdpr=mcidorse,xe,sde)
+ 
+                                 
+    probenthus                             
+                                 
+      probskept                           
+
+      
+      function conclude(probenethus,probskept){
+      
+      
+      var conclusion = ""
+      
+      if (probenthus > 0.95 && probskept > 0.95 ) 
+      {
+        var conclusion = " Recommendation(Diamond and Kaul): Evidence beyond a reasonable doubt since evidence in both skeptical and enthusiastic prior greater than 95 percent " 
+      }
+ 
+ if  (probenthus > 0.95 && probskept < 0.95 && probskept > 0.50 ) // added two clause to clarify
+{
+ var  conclusion = " Recommendation(Diamond and Kaul) : Clear and convincing evidence since evidence in enthusiastic prior greater than 95 percent while evidence in skeptical prior less than 95 but more than 50 percent" 
+ 
+  
+}
+
+ if  (probenthus < 0.95 && probskept > 0.50 ) 
+{
+  var conclusion = "Recommendation(Diamond and Kaul) : Preponderance of  evidence since evidence in both enthusiastic and skeptical prior less than 95 percent and more than 50 % " }
+
+ if  (probenthus >0.50 && probskept < 0.50 ) 
+{
+  var conclusion = " Recommendation(Diamond and Kaul) : Reasonable suspicion since evidence in  enthusiastic prior higher than 50 percent and skeptical prior less than 50 % " }
+
+        if  (probenthus < 0.50 && probskept < 0.50 ) 
+ 
+{
+  var conclusion = " Recommendation(Diamond and Kaul) : Insufficient evidence since evidence in both enthusiastic and skeptical prior less than 50 % " }
+
+
+   return conclusion     
+        
+      }
+
+
+
+
+
+var z = conclude(probenthus,probskept)
+
+write_log("\n")
+
+write_log(study)
+
+write_log("\n")
+write_log("\n")
+write_log("\n")
+
+
+write_log(wip1)
+
+write_log("\n")
+write_log("\n")
+
+write_log("\n")
+
+write_log(wip2)
+write_log("\n")
+write_log("\n")
+
+write_log("\n")
+
+write_log(enthusiasticprior)
+write_log("\n")
+write_log("\n")
+
+write_log("\n")
+
+write_log(skepticalprior)
+
+write_log("\n")
+
+write_log("\n")
+
+write_log(z)
+
+
+
+
+
+
+
+
+
+//write_log("<b>"summary"</b>");
+//write_log(finalsummary);
+	})
+	})
+	 </script>
+	
+
+
+ <h1 style="color:red" > Bayesian Interpretation of Clinical Trials and A/B tests </h1>
+ 
+ <p>  Enter  Events(Failure rate) Control Group: <input ="text" placeholder="50"  id="c1"> </p>
+ 
+ <p>Enter Total number of patients  in control Group: <input ="text" placeholder="100"  id="d1"></p>
+
+<p>Enter Events(Failure rate) in Test Group: <input ="text" placeholder="25"  id="a1"></p>
+ <p>Enter Total number of patients in Test Group: <input ="text" placeholder="100"  id="b1"></p>
+ 
+ <p>Enter Minimum clinically important difference(expected risk reduction in percent) <input ="text" placeholder="15"  id="mcid"></p>
+<p>Enter Threshold of difference <input ="text" placeholder="12"  id="del"></p>
+ <p>Enter upper limit of Range of practical equivalence(ROPE): <input ="text" placeholder="2.5"  id="rope1"></p>
+ <p>Enter lower limit of Range of practical equivalence(ROPE): <input ="text" placeholder="-2.5"  id="rope2"></p>
+ 
+ 
+	<input type="button" value="Calculate Bayesian Interpretation" id = "calc">
+	<input type="button" value="reset" id="reset"  >
+
+
+    
+	<p> Important References : <a href="https://www.ncbi.nlm.nih.gov/pubmed/15172393"> Diamond and Kaul 2004 </a> ,<a href ="https://www.ncbi.nlm.nih.gov/pubmed/19667308">Diamond and Kaul 2009 </a> , <a href="https://www.ncbi.nlm.nih.gov/pubmed/26668090"> Pedroza2015 </a>,<a href="https://projecteuclid.org/euclid.ss/1089808280" > Spieghalter </a>.</p>
+ 
+
+<div id="log_wrapper_div" class="sg-10"> <br/><br/><div class="item_title">Bayesian Interpretation</div><textarea id="log" style= "width: 100%; height: 250px; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; " ></textarea></div>
+            </div>
+			
+			</body>
+			</html>
+
